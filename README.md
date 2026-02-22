@@ -2,6 +2,9 @@
 
 # 🏃‍♂️ STRIDE — Stake. Walk. Win.
 
+<img width="1080" height="956" alt="image" src="https://github.com/user-attachments/assets/07cd9a25-7df0-4584-bcab-cb2916d8817c" />
+
+
 > **"Proof of Step"** — Stop dreaming, start walking. STRIDE is a high-performance fitness accountability protocol built on **Monad**, where your discipline pays, and your laziness costs.
 
 ----------
@@ -83,6 +86,7 @@ Earn permanent on-chain badges like _Iron Strider_ and _Squad Captain_.
     
 4.  **Claim:** Once the challenge ends, the smart contract redistributes the "Lazy Stakes" to the "Disciplined Winners."
     
+<img width="1424" height="591" alt="image" src="https://github.com/user-attachments/assets/db498dfa-2555-4158-8581-2e995664dbb4" />
 
 ----------
 
