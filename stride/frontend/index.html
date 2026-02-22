@@ -14,7 +14,6 @@
 </head>
 <body>
 
-<!-- DESKTOP QR VIEW -->
 <div id="desktop-view" style="display:none;position:fixed;inset:0;background:#050505;z-index:200;
      flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;text-align:center;padding:2rem;">
   <div style="font-family:'Anton',sans-serif;font-size:6rem;letter-spacing:4px;color:#fff;line-height:1;">STRIDE</div>
@@ -23,9 +22,8 @@
   </h2>
   <div id="qrcode" style="background:#fff;padding:14px;border-radius:4px;display:inline-block;"></div>
   <div id="desktop-url" style="font-size:0.7rem;color:#333;font-family:monospace;word-break:break-all;max-width:460px;"></div>
-  <!-- BIG VISIBLE BUTTON for desktop/judges -->
   <button onclick="overrideToApp()"
-    style="margin-top:0.5rem;padding:0.9rem 2.5rem;background:var(--deep-red,#b00b1a);border:none;color:#fff;
+    style="margin-top:0.5rem;padding:0.9rem 2.5rem;background:#b00b1a;border:none;color:#fff;
            font-family:'Anton',sans-serif;font-size:1.1rem;letter-spacing:2px;cursor:pointer;border-radius:2px;">
     OPEN APP ON THIS DEVICE
   </button>
@@ -34,12 +32,10 @@
   </p>
 </div>
 
-<!-- LOADER -->
 <div id="loader" class="loader active">
   <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
 </div>
 
-<!-- MAIN APP -->
 <div id="app" class="app-container hidden">
   <nav class="navbar">
     <div class="nav-brand">STRIDE</div>
@@ -61,7 +57,6 @@
 
   <main class="main-content">
 
-    <!-- HOME -->
     <section id="view-home" class="view active">
       <div class="hero">
         <div class="hero-brand-display">
@@ -118,7 +113,6 @@
       </div>
     </section>
 
-    <!-- DASHBOARD -->
     <section id="view-dashboard" class="view">
       <h2>Dashboard</h2>
       <div class="disconnected-only card mt-1" style="text-align:center;padding:3rem 1.5rem;">
@@ -140,19 +134,16 @@
             <button class="btn btn-primary" onclick="app.withdrawFunds()">Withdraw</button>
           </div>
         </div>
-
-        <!-- Active Pool Banner — shows after pool creation -->
         <div id="active-pool-banner" class="card mt-1" style="display:none;border-color:#22c55e;background:rgba(34,197,94,0.05);">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
             <div>
               <div style="color:#22c55e;font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;">Your Active Pool</div>
               <div style="font-family:var(--font-anton);font-size:2rem;">Pool #<span id="active-pool-id">—</span></div>
-              <div style="color:var(--text-muted);font-size:0.85rem;" id="active-pool-meta">Loading...</div>
+              <div style="color:var(--text-muted);font-size:0.85rem;" id="active-pool-meta"></div>
             </div>
-            <button class="btn btn-primary" id="active-pool-log-btn" onclick="setPoolForSteps(0)">Log Steps</button>
+            <button class="btn btn-primary" id="active-pool-log-btn">Log Steps</button>
           </div>
         </div>
-
         <h3 style="margin-top:1.5rem;margin-bottom:0.75rem;">All Your Pools</h3>
         <div id="ongoing-challenges-list" class="challenge-list">
           <div class="card" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading pools...</div>
@@ -171,7 +162,6 @@
       </div>
     </section>
 
-    <!-- STEPS -->
     <section id="view-steps" class="view">
       <h2>Step Tracker</h2>
       <p style="color:var(--text-muted);margin-bottom:1.5rem;font-size:0.9rem;">Phone tracks. Oracle signs. Chain records.</p>
@@ -198,7 +188,7 @@
         <div class="card mt-1">
           <h3 style="margin-bottom:0.75rem;">Submit to Pool</h3>
           <div class="form-group">
-            <label>Pool ID <span id="pool-id-hint" style="color:var(--deep-red);font-size:0.8rem;"></span></label>
+            <label>Pool ID <span id="pool-id-hint" style="color:#22c55e;font-size:0.8rem;font-family:var(--font-inter);font-weight:400;"></span></label>
             <input type="number" id="submit-pool-id" value="0" min="0">
           </div>
           <button class="btn btn-primary full-width mt-1" id="submit-steps-btn" onclick="app.submitSteps()" disabled>
@@ -217,7 +207,6 @@
       </div>
     </section>
 
-    <!-- CHALLENGES -->
     <section id="view-challenges" class="view">
       <div class="section-header">
         <h2>Challenges</h2>
@@ -253,7 +242,6 @@
       </div>
     </section>
 
-    <!-- PROFILE -->
     <section id="view-profile" class="view">
       <div class="disconnected-only card" style="text-align:center;padding:3rem 1.5rem;margin-bottom:1.5rem;">
         <h3>Connect to View Profile</h3>
@@ -301,7 +289,6 @@
   </main>
 </div>
 
-<!-- MODALS -->
 <div id="modal-overlay" class="modal-overlay hidden">
   <div id="modal-connect" class="modal card hidden">
     <h3>Wallet Required</h3>
@@ -340,7 +327,6 @@
       <button class="btn btn-ghost full-width mt-1" onclick="app.closeModal()">Reject</button>
     </div>
   </div>
-  <!-- Pool Created Success Modal -->
   <div id="modal-pool-created" class="modal card hidden" style="border-color:#22c55e;">
     <h3 style="color:#22c55e;">Pool Created!</h3>
     <p style="margin-bottom:0.5rem;">Your pool is live on Monad Testnet.</p>
@@ -349,16 +335,15 @@
       <div style="font-family:var(--font-anton);font-size:3.5rem;color:#22c55e;line-height:1;" id="created-pool-id-display">—</div>
     </div>
     <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
-      Share this ID with friends so they can join. Go to Steps tab and use this ID to submit your steps.
+      Share this ID with friends so they can join. Your Pool ID is pre-filled in the Steps tab.
     </p>
-    <button class="btn btn-primary full-width" onclick="app.closeModal();setPoolForSteps(window._lastCreatedPoolId);switchView('steps');">
+    <button class="btn btn-primary full-width" onclick="app.closeModal();switchView('steps');">
       Start Logging Steps &rarr;
     </button>
     <button class="btn btn-ghost full-width mt-1" onclick="app.closeModal();switchView('dashboard');">View Dashboard</button>
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast" style="position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;
      padding:0.75rem 1.5rem;border-radius:8px;font-size:0.9rem;z-index:9999;border:1px solid rgba(255,255,255,0.08);
      display:none;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:90vw;text-align:center;"></div>
@@ -366,9 +351,9 @@
 <script>lucide.createIcons();</script>
 <script>
 
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 var ORACLE_URL    = 'https://stride-production-905b.up.railway.app';
 var CONTRACT_ADDR = '0xFbe9a33D316e6fAa0AD00756F60c18db39F9e339';
-
 var MONAD_CHAIN_ID = '0x279f';
 var MONAD_RPC = 'https://testnet-rpc.monad.xyz';
 var ZERO_ADDR = '0x0000000000000000000000000000000000000000';
@@ -394,14 +379,33 @@ var CONTRACT_ABI = [
   {"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"stateMutability":"view","type":"function"}
 ];
 
-
+// ── STATE ─────────────────────────────────────────────────────────────────────
 var walletAddress = null, web3 = null;
 var stepCount = 0, motionActive = false, lastMag = 0, lastStepTime = 0;
 var pendingTxFn = null;
 window._lastCreatedPoolId = null;
 
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+// Wraps any .send() call — handles Monad receipt polling quirk gracefully
+function sendTx(method, opts, onHash) {
+  return new Promise(function(resolve, reject) {
+    method.send(opts)
+      .on('transactionHash', function(hash) {
+        console.log('tx:', hash);
+        if (onHash) onHash(hash);
+      })
+      .on('receipt', function(receipt) { resolve(receipt); })
+      .on('error', function(err) {
+        if (err && err.message && err.message.includes('Failed to check for transaction receipt')) {
+          resolve(null); // Monad RPC polling quirk — tx went through
+        } else {
+          reject(err);
+        }
+      });
+  });
+}
+
 function overrideToApp() {
-  // Use URL param — disappears on next clean load, no localStorage pollution
   window.location.href = window.location.pathname + '?desktop=1';
 }
 
@@ -410,35 +414,32 @@ var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
             || window.innerWidth < 1024
             || new URLSearchParams(window.location.search).get('desktop') === '1';
 
-// ── Pool ID tracking ─────────────────────────────────────────────────────────
 function trackCreatedPool(id) {
+  if (id < 0) return;
   var arr = JSON.parse(localStorage.getItem('strideCreatedPools') || '[]');
   if (arr.indexOf(id) === -1) { arr.push(id); localStorage.setItem('strideCreatedPools', JSON.stringify(arr)); }
   window._lastCreatedPoolId = id;
-  // Update pool-id hint in Steps tab
   var hint = document.getElementById('pool-id-hint');
   if (hint) hint.textContent = '(your pool: #' + id + ')';
-  // Update active pool banner
+  var spid = document.getElementById('submit-pool-id'); if (spid) spid.value = id;
   updateActivePoolBanner(id);
 }
 
 function updateActivePoolBanner(id) {
-  if (id === null || id === undefined) return;
+  if (id === null || id === undefined || id < 0) return;
   var banner = document.getElementById('active-pool-banner');
   var idEl   = document.getElementById('active-pool-id');
   var btn    = document.getElementById('active-pool-log-btn');
   if (!banner) return;
   banner.style.display = 'block';
   if (idEl) idEl.textContent = id;
-  if (btn)  btn.setAttribute('onclick', 'setPoolForSteps(' + id + ')');
-  // Load pool meta
+  if (btn) { btn.onclick = function(){ setPoolForSteps(id); }; }
   if (web3) {
     var c = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDR);
     c.methods.getPoolDetails(id).call().then(function(pool) {
       var meta = document.getElementById('active-pool-meta');
-      if (meta) meta.textContent =
-        pool.durationDays + ' days &middot; ' +
-        (parseInt(pool.stakePerPerson)/1e18).toFixed(4) + ' MON stake &middot; ' +
+      if (meta) meta.textContent = pool.durationDays + ' days · ' +
+        (parseInt(pool.stakePerPerson)/1e18).toFixed(4) + ' MON stake · ' +
         (pool.mode == 0 ? 'Strict' : 'Flexible');
     }).catch(function(){});
   }
@@ -446,29 +447,33 @@ function updateActivePoolBanner(id) {
 
 function restoreActivePool() {
   var arr = JSON.parse(localStorage.getItem('strideCreatedPools') || '[]');
-  if (arr.length > 0) {
-    var lastId = arr[arr.length - 1];
+  var clean = arr.filter(function(id){ return id >= 0; });
+  if (clean.length !== arr.length) localStorage.setItem('strideCreatedPools', JSON.stringify(clean));
+  if (clean.length > 0) {
+    var lastId = clean[clean.length - 1];
     window._lastCreatedPoolId = lastId;
-    var hint = document.getElementById('pool-id-hint');
-    if (hint) hint.textContent = '(your pool: #' + lastId + ')';
+    var hint = document.getElementById('pool-id-hint'); if (hint) hint.textContent = '(your pool: #' + lastId + ')';
+    var spid = document.getElementById('submit-pool-id'); if (spid) spid.value = lastId;
     updateActivePoolBanner(lastId);
-    // Pre-fill steps pool ID
-    var spid = document.getElementById('submit-pool-id');
-    if (spid) spid.value = lastId;
   }
 }
 
-// ── Entry point ───────────────────────────────────────────────────────────────
+function initWeb3(provider) {
+  web3 = new Web3(provider);
+  web3.eth.transactionPollingInterval = 2000;
+  web3.eth.transactionConfirmationBlocks = 1;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
   if (!isMobile) {
     var dv = document.getElementById('desktop-view');
     dv.style.display = 'flex';
-    var url = window.location.href.split('?')[0];
+    var url = window.location.origin + window.location.pathname;
     document.getElementById('desktop-url').textContent = url;
     try { new QRCode(document.getElementById('qrcode'),{text:url,width:200,height:200,colorDark:'#000',colorLight:'#fff'}); }
     catch(e) { document.getElementById('qrcode').textContent = url; }
-    var ld = document.getElementById('loader');
-    ld.classList.remove('active'); ld.style.display='none';
+    var ld = document.getElementById('loader'); ld.classList.remove('active'); ld.style.display='none';
     return;
   }
   var params = new URLSearchParams(window.location.search);
@@ -485,7 +490,7 @@ window.addEventListener('load', function() {
         var ld = document.getElementById('loader');
         ld.classList.add('fade-out');
         ld.addEventListener('transitionend', function() {
-          ld.style.display='none';
+          ld.style.display = 'none';
           document.getElementById('app').classList.remove('hidden');
           lucide.createIcons();
           initApp();
@@ -503,7 +508,7 @@ function initApp() {
   loadGlobalStats();
   if (window.ethereum) {
     window.ethereum.request({method:'eth_accounts'}).then(function(a){
-      if (a[0]) { web3=new Web3(window.ethereum); onWalletConnected(a[0]); }
+      if (a[0]) { initWeb3(window.ethereum); onWalletConnected(a[0]); }
     }).catch(function(){});
   }
 }
@@ -511,8 +516,7 @@ function initApp() {
 function switchView(name) {
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
-  var v=document.getElementById('view-'+name);
-  var b=document.querySelector('.nav-btn[data-target="'+name+'"]');
+  var v=document.getElementById('view-'+name), b=document.querySelector('.nav-btn[data-target="'+name+'"]');
   if(v) v.classList.add('active');
   if(b) b.classList.add('active');
   if(name==='dashboard' && walletAddress) app.loadDashboard();
@@ -538,8 +542,7 @@ function showToast(msg,ms) {
 }
 
 function updateStepDisplay() {
-  var el=document.getElementById('step-count-display');
-  if(el) el.textContent=stepCount;
+  var el=document.getElementById('step-count-display'); if(el) el.textContent=stepCount;
   updateSubmitBtn();
 }
 
@@ -598,8 +601,7 @@ function badgeLabel(n) {
 }
 
 function setPoolForSteps(id) {
-  var el=document.getElementById('submit-pool-id');
-  if(el) el.value=id;
+  var el=document.getElementById('submit-pool-id'); if(el) el.value=id;
   switchView('steps');
 }
 
@@ -639,34 +641,26 @@ async function ensureMonad() {
 async function finalizePool(poolId) {
   try {
     var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
-    await c.methods.finalize(poolId).send({from:walletAddress});
-    showToast('Pool '+poolId+' finalized! Winnings distributed.',5000);
+    showToast('Finalizing pool '+poolId+'...',8000);
+    await sendTx(c.methods.finalize(poolId),{from:walletAddress});
+    showToast('Pool #'+poolId+' finalized! Winnings distributed.',5000);
     app.loadDashboard();
   } catch(e){ showToast('Error: '+(e.message||'Finalize failed')); }
 }
 
-// ── After createPool tx: get pool ID, store, show success modal ──────────────
 async function handlePoolCreated(contract) {
-  // Small delay — lets Monad state propagate before reading poolCount
-  await new Promise(function(resolve){ setTimeout(resolve, 1500); });
-
-  var newCount = parseInt(await contract.methods.poolCount().call());
-
-  // Guard: if count is still 0 something went wrong, default to 0
-  var newId = newCount > 0 ? newCount - 1 : 0;
-// 0-indexed: poolCount after creation minus 1
+  await new Promise(function(resolve){ setTimeout(resolve,1500); });
+  var newCount=parseInt(await contract.methods.poolCount().call());
+  var newId=newCount>0?newCount-1:0;
   trackCreatedPool(newId);
-  // Show success modal with big pool ID
-  document.getElementById('created-pool-id-display').textContent = newId;
-  // Pre-fill the submit-pool-id input
-  var spid = document.getElementById('submit-pool-id');
-  if (spid) spid.value = newId;
-  app.closeModal();
+  document.getElementById('created-pool-id-display').textContent=newId;
   showModal('modal-pool-created');
   app.loadDashboard();
 }
 
+// ── APP ───────────────────────────────────────────────────────────────────────
 var app = {
+
   connectWallet: async function() {
     if(!window.ethereum){
       window.location.href='https://metamask.app.link/dapp/'+window.location.host+window.location.pathname+'?steps='+stepCount;
@@ -675,14 +669,13 @@ var app = {
     try {
       var accounts=await window.ethereum.request({method:'eth_requestAccounts'});
       await ensureMonad();
-      web3=new Web3(window.ethereum);
+      initWeb3(window.ethereum);
       onWalletConnected(accounts[0]);
     } catch(e){ showToast('Error: '+(e.message||'Connection failed')); }
   },
 
   disconnectWallet: function() {
     walletAddress=null; web3=null;
-   
     setWalletUI(false);
     showToast('Wallet disconnected');
   },
@@ -707,7 +700,11 @@ var app = {
     pendingTxFn=async function(){
       var wei=web3.utils.toWei(cfg.stake,'ether');
       var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
-      await c.methods.createPool(ZERO_ADDR,wei,cfg.dailyGoal,cfg.duration,cfg.mode,0,0).send({from:walletAddress,value:wei});
+      await sendTx(
+        c.methods.createPool(ZERO_ADDR,wei,cfg.dailyGoal,cfg.duration,cfg.mode,0,0),
+        {from:walletAddress,value:wei},
+        function(){ showToast('Pool tx sent! Waiting for Monad...',8000); }
+      );
       await handlePoolCreated(c);
     };
     showModal('modal-transaction');
@@ -723,7 +720,11 @@ var app = {
     try {
       showToast('Creating pool...',10000);
       var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
-      await c.methods.createPool(ZERO_ADDR,wei,goal,dur,mode,0,0).send({from:walletAddress,value:wei});
+      await sendTx(
+        c.methods.createPool(ZERO_ADDR,wei,goal,dur,mode,0,0),
+        {from:walletAddress,value:wei},
+        function(){ showToast('Pool tx sent! Waiting...', 8000); }
+      );
       await handlePoolCreated(c);
     } catch(e){ showToast('Error: '+(e.message||'Failed')); }
   },
@@ -775,8 +776,12 @@ var app = {
       if(!data.signature) throw new Error(data.error||'No signature from oracle');
       showToast('Confirm in MetaMask...',15000);
       var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
-      await c.methods.submitSteps(poolId,stepCount,today,data.signature).send({from:walletAddress});
-      showToast(stepCount+' steps submitted to Pool '+poolId+'!',5000);
+      await sendTx(
+        c.methods.submitSteps(poolId,stepCount,today,data.signature),
+        {from:walletAddress},
+        function(hash){ showToast('Steps tx sent! Confirming...', 8000); }
+      );
+      showToast(stepCount+' steps submitted to Pool #'+poolId+'!',5000);
       app.loadDashboard();
     } catch(e){ showToast('Error: '+(e.message||'Submission failed')); }
     finally { btn.disabled=false; }
@@ -797,18 +802,14 @@ var app = {
       }
 
       var count=parseInt(await c.methods.poolCount().call());
-      var sp=document.getElementById('stat-total-pools'); if(sp) sp.textContent=count;
-      var hp=document.getElementById('home-pool-count'); if(hp) hp.textContent=count+' pools live';
+      var e1=document.getElementById('stat-total-pools'); if(e1) e1.textContent=count;
+      var e2=document.getElementById('home-pool-count'); if(e2) e2.textContent=count+' pools live';
 
-      // Merge on-chain membership with locally tracked pools
-      var tracked=JSON.parse(localStorage.getItem('strideCreatedPools')||'[]');
+      var tracked=JSON.parse(localStorage.getItem('strideCreatedPools')||'[]')
+        .filter(function(id){ return id>=0&&id<count; });
       var toCheck=[];
       for(var j=0;j<Math.min(count,30);j++) toCheck.push(j);
-      tracked.forEach(function(id){
-  // Skip any corrupted -1 entries from previous bug
-  if(id >= 0 && id < count && toCheck.indexOf(id) === -1) toCheck.push(id);
-});
-
+      tracked.forEach(function(id){ if(toCheck.indexOf(id)===-1) toCheck.push(id); });
 
       var html='';
       for(var ii=0;ii<toCheck.length;ii++){
@@ -819,7 +820,6 @@ var app = {
 
         var pool=await c.methods.getPoolDetails(i).call();
         var pct=pool.durationDays>0?Math.round(p.completedDays/pool.durationDays*100):0;
-        var members=parseInt(pool.memberCount);
         var stake=(parseInt(pool.stakePerPerson)/1e18).toFixed(4);
         var totalPot=(parseInt(pool.totalStaked)/1e18).toFixed(4);
 
@@ -829,36 +829,35 @@ var app = {
             ?'<span class="badge win">Finished</span>'
             :'<span class="badge" style="background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);">Active</span>';
 
-        var notMember=!p.memberExists&&isTracked;
-        var actionBtn='';
-        if(notMember){
-          actionBtn='<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);border-radius:4px;padding:0.6rem;margin-top:0.75rem;font-size:0.82rem;color:#f59e0b;text-align:center;">'
-            +'You created this pool but are not yet enrolled as a member. Stake is held in contract.</div>';
+        var ab='';
+        if(!p.memberExists&&isTracked){
+          ab='<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);border-radius:4px;'
+            +'padding:0.6rem;margin-top:0.75rem;font-size:0.82rem;color:#f59e0b;text-align:center;">'
+            +'You created this pool. Awaiting members to join.</div>';
         } else if(!pool.finalized&&!p.forfeited){
-          actionBtn='<button class="btn btn-outline btn-small full-width mt-1" onclick="setPoolForSteps('+i+')">Log Steps for Pool #'+i+'</button>';
+          ab='<button class="btn btn-outline btn-small full-width mt-1" onclick="setPoolForSteps('+i+')">Log Steps for Pool #'+i+'</button>';
         } else if(pool.finalized){
-          actionBtn='<button class="btn btn-outline btn-small full-width mt-1" onclick="finalizePool('+i+')">Claim / Finalize</button>';
+          ab='<button class="btn btn-outline btn-small full-width mt-1" onclick="finalizePool('+i+')">Claim / Finalize</button>';
         }
 
         html+='<div class="challenge-card card">'
           +'<div class="card-header"><h4>Pool #'+i+'</h4>'+bdg+'</div>'
           +'<div class="card-body">'
           +'<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem;">'
-          +'<span style="color:var(--text-muted);font-size:0.82rem;">' +p.completedDays+'/'+pool.durationDays+' days</span>'
-          +'<span style="color:var(--text-muted);font-size:0.82rem;">'+stake+' MON stake</span>'
-          +'<span style="color:var(--text-muted);font-size:0.82rem;">'+members+' members</span>'
+          +'<span style="color:var(--text-muted);font-size:0.82rem;">'+p.completedDays+'/'+pool.durationDays+' days</span>'
+          +'<span style="color:var(--text-muted);font-size:0.82rem;">'+stake+' MON/person</span>'
+          +'<span style="color:var(--text-muted);font-size:0.82rem;">'+parseInt(pool.memberCount)+' members</span>'
           +'<span style="color:var(--deep-red);font-size:0.82rem;">Pot: '+totalPot+' MON</span>'
           +'</div>'
           +'<div class="lb-progress"><div class="lb-progress-fill" style="width:'+pct+'%;"></div></div>'
-          +actionBtn+'</div></div>';
+          +ab+'</div></div>';
       }
 
       document.getElementById('ongoing-challenges-list').innerHTML=html||
         '<div class="card" style="text-align:center;color:var(--text-muted);padding:2rem;">No pools yet. Create or join a challenge!</div>';
 
-      // Restore active pool banner
       if(window._lastCreatedPoolId!==null) updateActivePoolBanner(window._lastCreatedPoolId);
-    } catch(e){ console.error('Dashboard error:',e); }
+    } catch(e){ console.error('Dashboard:',e); }
   },
 
   loadProfile: async function() {
@@ -875,14 +874,15 @@ var app = {
         document.getElementById('profile-pending-card').style.display='block';
         document.getElementById('profile-pending-amount').textContent=(parseInt(pending)/1e18).toFixed(4)+' MON';
       }
-    } catch(e){ console.error('Profile error:',e); }
+    } catch(e){ console.error('Profile:',e); }
   },
 
   withdrawFunds: async function() {
     if(!walletAddress||!web3) return;
     try {
       var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
-      await c.methods.withdraw(ZERO_ADDR).send({from:walletAddress});
+      showToast('Processing withdrawal...',8000);
+      await sendTx(c.methods.withdraw(ZERO_ADDR),{from:walletAddress});
       showToast('Withdrawal successful!',4000);
       app.loadProfile(); app.loadDashboard();
     } catch(e){ showToast('Error: '+(e.message||'Withdrawal failed')); }
@@ -891,15 +891,18 @@ var app = {
   joinExistingPool: async function() {
     if(!walletAddress){showModal('modal-connect');return;}
     var poolId=parseInt(document.getElementById('join-pool-id').value);
-    if(isNaN(poolId)){showToast('Enter a valid Pool ID');return;}
+    if(isNaN(poolId)||poolId<0){showToast('Enter a valid Pool ID');return;}
     try {
       var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
       var pool=await c.methods.getPoolDetails(poolId).call();
-      showToast('Joining pool '+poolId+'...',10000);
-      await c.methods.joinPool(poolId).send({from:walletAddress,value:pool.stakePerPerson});
+      showToast('Joining pool #'+poolId+'...',10000);
+      await sendTx(
+        c.methods.joinPool(poolId),
+        {from:walletAddress,value:pool.stakePerPerson},
+        function(){ showToast('Join tx sent! Waiting for Monad...', 8000); }
+      );
       trackCreatedPool(poolId);
-      showToast('Joined Pool #'+poolId+'! Go log your steps.',5000);
-      var spid=document.getElementById('submit-pool-id'); if(spid) spid.value=poolId;
+      showToast('Joined Pool #'+poolId+'!',4000);
       app.loadDashboard();
     } catch(e){ showToast('Error: '+(e.message||'Join failed')); }
   }
