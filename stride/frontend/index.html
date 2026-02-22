@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STRIDE - Crypto Health App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- DESKTOP QR VIEW -->
+<div id="desktop-view" style="display:none;position:fixed;inset:0;background:#050505;z-index:200;
+     flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;text-align:center;padding:2rem;">
+  <div style="font-family:'Anton',sans-serif;font-size:6rem;letter-spacing:4px;color:#fff;line-height:1;">STRIDE</div>
+  <h2 style="font-family:'Inter',sans-serif;font-size:1.2rem;font-weight:700;color:#666;max-width:400px;line-height:1.5;">
+    Open on your phone to start walking.
+  </h2>
+  <div id="qrcode" style="background:#fff;padding:14px;border-radius:4px;display:inline-block;"></div>
+  <div id="desktop-url" style="font-size:0.7rem;color:#333;font-family:monospace;word-break:break-all;max-width:460px;"></div>
+  <!-- BIG VISIBLE BUTTON for desktop/judges -->
+  <button onclick="overrideToApp()"
+    style="margin-top:0.5rem;padding:0.9rem 2.5rem;background:var(--deep-red,#b00b1a);border:none;color:#fff;
+           font-family:'Anton',sans-serif;font-size:1.1rem;letter-spacing:2px;cursor:pointer;border-radius:2px;">
+    OPEN APP ON THIS DEVICE
+  </button>
+  <p style="font-size:0.7rem;color:#2a2a2a;font-family:'Inter',sans-serif;letter-spacing:1px;">
+    Oracle-signed &middot; Verified on Monad &middot; 1 submission per day
+  </p>
+</div>
+
+<!-- LOADER -->
+<div id="loader" class="loader active">
+  <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="app-container hidden">
+  <nav class="navbar">
+    <div class="nav-brand">STRIDE</div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-target="home">Home</button>
+      <button class="nav-btn" data-target="dashboard">Dashboard</button>
+      <button class="nav-btn" data-target="steps">Steps</button>
+      <button class="nav-btn" data-target="challenges">Challenges</button>
+      <button class="nav-btn" data-target="profile">Profile</button>
+    </div>
+    <div class="nav-actions">
+      <button id="btn-connect-wallet" class="btn btn-outline" onclick="app.connectWallet()">Connect Wallet</button>
+      <div id="user-info" class="user-info hidden">
+        <span class="wallet-address" id="nav-wallet-address">0x12...ab</span>
+        <i data-lucide="wallet"></i>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- HOME -->
+    <section id="view-home" class="view active">
+      <div class="hero">
+        <div class="hero-brand-display">
+          <div class="persistent-elements">
+            <img src="assets/shoe.png" class="icon img-icon icon-tl" alt="">
+            <img src="assets/footprints.png" class="icon img-icon icon-tr" alt="">
+            <img src="assets/pedometer.png" class="icon img-icon icon-bl" alt="">
+            <img src="assets/compass.png" class="icon img-icon icon-br" alt="">
+          </div>
+          <h1 class="loader-title show" style="position:relative;z-index:2;margin:0;padding:1.5rem 0;">STRIDE</h1>
+        </div>
+        <h2 class="sarcastic-quote" style="margin-top:1rem;">Your step count has been an embarrassment. Now it's also expensive.</h2>
+        <div class="hero-actions disconnected-only" style="margin-top:1.5rem;">
+          <button class="btn btn-primary btn-large" onclick="app.connectWallet()">Connect Wallet to start</button>
+        </div>
+        <div class="hero-content connected-only hidden" style="margin-top:1.5rem;">
+          <div class="live-ticker">
+            <span class="pulse-dot"></span>
+            Active on Monad &mdash; <span class="highlight" id="home-pool-count">loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="how-it-works">
+        <h3>How it Works</h3>
+        <div class="steps">
+          <div class="step"><div class="step-num">1.</div><h4>Stake</h4><p>Put your money where your mouth is. The only way you'll actually get off the couch.</p></div>
+          <div class="step"><div class="step-num">2.</div><h4>Walk</h4><p>Phone accelerometer tracks every step. Oracle signs each submission — cryptographically spoof-proof.</p></div>
+          <div class="step"><div class="step-num">3.</div><h4>Win</h4><p>Hit the target, keep your stake, take the losers' money. 100% redistributed, zero platform fee.</p></div>
+        </div>
+        <div class="payout-explainer">
+          <h4>How it pays out</h4>
+          <p>Winners split the full pool equally. Losers forfeit everything. All math trustless on-chain.</p>
+        </div>
+      </div>
+      <div class="global-stats-counter card" style="text-align:center;padding:3rem 2rem;border-color:var(--deep-red);background:rgba(176,11,26,0.05);margin-bottom:3rem;">
+        <h3 style="margin-bottom:1.5rem;color:var(--text-muted);letter-spacing:2px;">Global STRIDE Ecosystem</h3>
+        <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:1.5rem;">
+          <div>
+            <div style="font-family:var(--font-anton);font-size:4rem;color:var(--text-main);line-height:1;" id="stat-total-pools">—</div>
+            <div style="color:var(--deep-red);font-family:var(--font-anton);text-transform:uppercase;">Total Pools</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-anton);font-size:4rem;color:var(--text-main);line-height:1;" id="stat-oracle-status">—</div>
+            <div style="color:var(--text-muted);font-family:var(--font-anton);text-transform:uppercase;">Oracle Status</div>
+          </div>
+        </div>
+      </div>
+      <div class="community-reviews">
+        <h3>Hall of Fame / Shame</h3>
+        <div class="reviews-grid">
+          <div class="review card"><p>"I lost 15 Monad because it rained for a week. 10/10 would gamble my health again."</p><span class="author">- user_0x99</span></div>
+          <div class="review card"><p>"Finally an app that weaponizes my fear of losing money into actual fitness."</p><span class="author">- fitness_degen</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view">
+      <h2>Dashboard</h2>
+      <div class="disconnected-only card mt-1" style="text-align:center;padding:3rem 1.5rem;">
+        <h3>Wallet Not Connected</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;">Connect your wallet to see your pools and stats.</p>
+        <button class="btn btn-primary" onclick="app.connectWallet()">Connect Metamask</button>
+      </div>
+      <div class="connected-only hidden">
+        <div class="dashboard-stats">
+          <div class="stat-card"><span class="stat-label">Challenges Won</span><span class="stat-value highlight" id="dash-wins">—</span></div>
+          <div class="stat-card"><span class="stat-label">Total Challenges</span><span class="stat-value" id="dash-challenges">—</span></div>
+        </div>
+        <div id="pending-winnings-card" class="card mt-1" style="display:none;border-color:var(--deep-red);">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+            <div>
+              <div style="color:var(--text-muted);font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;">Pending Winnings</div>
+              <div style="font-family:var(--font-anton);font-size:2rem;" id="dash-pending-amount">0 MON</div>
+            </div>
+            <button class="btn btn-primary" onclick="app.withdrawFunds()">Withdraw</button>
+          </div>
+        </div>
+
+        <!-- Active Pool Banner — shows after pool creation -->
+        <div id="active-pool-banner" class="card mt-1" style="display:none;border-color:#22c55e;background:rgba(34,197,94,0.05);">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+            <div>
+              <div style="color:#22c55e;font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;">Your Active Pool</div>
+              <div style="font-family:var(--font-anton);font-size:2rem;">Pool #<span id="active-pool-id">—</span></div>
+              <div style="color:var(--text-muted);font-size:0.85rem;" id="active-pool-meta">Loading...</div>
+            </div>
+            <button class="btn btn-primary" id="active-pool-log-btn" onclick="setPoolForSteps(0)">Log Steps</button>
+          </div>
+        </div>
+
+        <h3 style="margin-top:1.5rem;margin-bottom:0.75rem;">All Your Pools</h3>
+        <div id="ongoing-challenges-list" class="challenge-list">
+          <div class="card" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading pools...</div>
+        </div>
+        <div class="card mt-1">
+          <h3 style="margin-bottom:0.75rem;">Join Pool by ID</h3>
+          <div style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap;">
+            <div class="form-group" style="flex:1;min-width:120px;margin-bottom:0;">
+              <label>Pool ID</label>
+              <input type="number" id="join-pool-id" placeholder="e.g. 3" min="0"
+                style="width:100%;padding:0.75rem;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-main);font-family:var(--font-inter);">
+            </div>
+            <button class="btn btn-outline" onclick="app.joinExistingPool()">Join Pool</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEPS -->
+    <section id="view-steps" class="view">
+      <h2>Step Tracker</h2>
+      <p style="color:var(--text-muted);margin-bottom:1.5rem;font-size:0.9rem;">Phone tracks. Oracle signs. Chain records.</p>
+      <div class="disconnected-only card mt-1" style="text-align:center;padding:3rem 1.5rem;">
+        <h3>Wallet Required</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;">Connect your wallet to track and submit steps.</p>
+        <button class="btn btn-primary" onclick="app.connectWallet()">Connect Metamask</button>
+      </div>
+      <div class="connected-only hidden">
+        <div class="card" style="text-align:center;padding:2.5rem 1.5rem;background:rgba(176,11,26,0.05);border-color:var(--deep-red);">
+          <div id="step-count-display" style="font-family:var(--font-anton);font-size:5.5rem;color:var(--text-main);line-height:1;">0</div>
+          <div style="color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-top:0.4rem;font-size:0.9rem;">steps today</div>
+          <div style="margin-top:1.25rem;display:inline-flex;align-items:center;gap:0.5rem;
+               background:rgba(255,255,255,0.05);padding:0.4rem 1rem;border-radius:50px;border:1px solid var(--border-color);">
+            <span class="pulse-dot" id="motion-dot" style="background:#555;animation:none;"></span>
+            <span style="color:var(--text-muted);font-size:0.85rem;" id="motion-status-text">Motion sensor off</span>
+          </div>
+        </div>
+        <div class="card mt-1">
+          <h3 style="margin-bottom:0.75rem;">Motion Sensor</h3>
+          <p style="color:var(--text-muted);margin-bottom:0.75rem;font-size:0.85rem;">Uses your phone accelerometer to count steps in real time.</p>
+          <button class="btn btn-outline full-width" id="motion-btn" onclick="app.toggleMotion()">Enable Step Tracking</button>
+        </div>
+        <div class="card mt-1">
+          <h3 style="margin-bottom:0.75rem;">Submit to Pool</h3>
+          <div class="form-group">
+            <label>Pool ID <span id="pool-id-hint" style="color:var(--deep-red);font-size:0.8rem;"></span></label>
+            <input type="number" id="submit-pool-id" value="0" min="0">
+          </div>
+          <button class="btn btn-primary full-width mt-1" id="submit-steps-btn" onclick="app.submitSteps()" disabled>
+            Submit Today's Steps
+          </button>
+          <p style="color:var(--text-muted);font-size:0.78rem;text-align:center;margin-top:0.75rem;">
+            Oracle-signed &middot; Verified on Monad &middot; 1 per day
+          </p>
+        </div>
+        <div class="card mt-1">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:var(--text-muted);font-size:0.85rem;">Connected</span>
+            <span style="font-family:monospace;font-size:0.85rem;" id="steps-wallet-addr">—</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHALLENGES -->
+    <section id="view-challenges" class="view">
+      <div class="section-header">
+        <h2>Challenges</h2>
+        <button class="btn btn-primary" onclick="app.openCreateChallengeModal()">Create Custom</button>
+      </div>
+      <div class="challenge-grid">
+        <div class="challenge-card card premium">
+          <div class="card-header">
+            <h4>7-Day Sprint</h4>
+            <span class="badge" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">STRICT</span>
+          </div>
+          <div class="card-body">
+            <p class="desc" style="color:var(--text-muted);margin-bottom:0.75rem;">Miss a single day &mdash; forfeit your entire stake.</p>
+            <ul style="color:var(--text-muted);font-size:0.9rem;padding-left:1rem;list-style:disc;">
+              <li>10,000 steps / day</li><li>Duration: 7 Days</li><li>Stake: 0.01 MON</li>
+            </ul>
+            <button class="btn btn-outline full-width mt-1" onclick="app.joinChallenge('7day')">Lose Your Money</button>
+          </div>
+        </div>
+        <div class="challenge-card card premium">
+          <div class="card-header">
+            <h4>1-Month Marathon</h4>
+            <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">FLEXIBLE</span>
+          </div>
+          <div class="card-body">
+            <p class="desc" style="color:var(--text-muted);margin-bottom:0.75rem;">Total steps by end of 30 days.</p>
+            <ul style="color:var(--text-muted);font-size:0.9rem;padding-left:1rem;list-style:disc;">
+              <li>300,000 total steps</li><li>Duration: 30 Days</li><li>Stake: 0.05 MON</li>
+            </ul>
+            <button class="btn btn-outline full-width mt-1" onclick="app.joinChallenge('1month')">Suffer For Longer</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="view-profile" class="view">
+      <div class="disconnected-only card" style="text-align:center;padding:3rem 1.5rem;margin-bottom:1.5rem;">
+        <h3>Connect to View Profile</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;">Connect your wallet to manage your profile.</p>
+        <button class="btn btn-primary" onclick="app.connectWallet()">Connect Metamask</button>
+      </div>
+      <div class="connected-only hidden">
+        <div class="profile-header">
+          <div class="avatar"><i data-lucide="user"></i></div>
+          <div class="profile-info">
+            <h2 id="profile-username">Strider</h2>
+            <span class="wallet-badge" id="profile-wallet">Connected: 0x...</span>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box card"><h4>Won</h4><span class="value" id="profile-wins">—</span></div>
+          <div class="stat-box card"><h4>Challenges</h4><span class="value" id="profile-challenges">—</span></div>
+          <div class="stat-box card"><h4>Badge</h4><span class="value" id="profile-badge">—</span></div>
+        </div>
+        <div id="profile-pending-card" class="card" style="display:none;margin-bottom:1.25rem;border-color:var(--deep-red);">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;">
+            <div>
+              <div style="color:var(--text-muted);font-size:0.82rem;text-transform:uppercase;letter-spacing:1px;">Pending Winnings</div>
+              <div style="font-family:var(--font-anton);font-size:1.8rem;" id="profile-pending-amount">0 MON</div>
+            </div>
+            <button class="btn btn-primary" onclick="app.withdrawFunds()">Claim</button>
+          </div>
+        </div>
+        <div class="connections card">
+          <h3>Connections</h3>
+          <div class="connection-item"><span>MetaMask</span><span class="badge win">Connected</span></div>
+          <div class="connection-item">
+            <span>Oracle</span>
+            <span class="badge" id="oracle-status" style="background:rgba(255,255,255,0.05);color:var(--text-muted);">Checking...</span>
+          </div>
+        </div>
+        <button class="btn btn-ghost full-width mt-1" onclick="app.disconnectWallet()">Disconnect Wallet</button>
+      </div>
+      <div class="support card" style="margin-top:1.5rem;">
+        <h3>Help &amp; Support</h3>
+        <ul><li><a href="#">FAQ</a></li><li><a href="#">Terms of Service</a></li></ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODALS -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div id="modal-connect" class="modal card hidden">
+    <h3>Wallet Required</h3>
+    <p>Connect your wallet before doing that.</p>
+    <button class="btn btn-primary full-width mt-1" onclick="app.connectWallet();app.closeModal()">Connect Metamask</button>
+    <button class="btn btn-ghost full-width mt-1" onclick="app.closeModal()">Cancel</button>
+  </div>
+  <div id="modal-error" class="modal card hidden">
+    <h3 style="color:var(--deep-red);">Error</h3>
+    <p id="error-message-text">Something went wrong.</p>
+    <button class="btn btn-outline full-width mt-1" onclick="app.closeModal()">Understood</button>
+  </div>
+  <div id="modal-create" class="modal card hidden">
+    <h3>Create Custom Pool</h3>
+    <p style="color:var(--text-muted);margin-bottom:1rem;">Set the rules. Share the pool ID with friends.</p>
+    <div class="form-group"><label>Daily Step Goal</label><input type="number" id="create-step-goal" value="10000" min="1000"></div>
+    <div class="form-group"><label>Duration (Days)</label><input type="number" id="create-duration" value="7" min="1" max="90"></div>
+    <div class="form-group">
+      <label>Mode</label>
+      <select id="create-mode" style="width:100%;padding:0.75rem;background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-main);font-family:var(--font-inter);">
+        <option value="0">Strict (miss 1 day = forfeit all)</option>
+        <option value="1">Flexible (total steps by deadline)</option>
+      </select>
+    </div>
+    <button class="btn btn-primary full-width mt-1" onclick="app.createCustomPool()">Create Pool</button>
+    <button class="btn btn-ghost full-width mt-1" onclick="app.closeModal()">Cancel</button>
+  </div>
+  <div id="modal-transaction" class="modal card hidden">
+    <h3>Confirm Transaction</h3>
+    <p>Action: <span id="tx-action">...</span></p>
+    <p>Amount: <strong id="tx-amount" class="highlight">...</strong></p>
+    <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem;">You will be prompted to sign in MetaMask.</p>
+    <div class="tx-loader hidden mt-1" id="tx-loader"><i data-lucide="loader-2" class="spin"></i> Processing on Monad...</div>
+    <div id="tx-actions">
+      <button class="btn btn-primary full-width mt-1" onclick="app.executeTransaction()">Sign &amp; Confirm</button>
+      <button class="btn btn-ghost full-width mt-1" onclick="app.closeModal()">Reject</button>
+    </div>
+  </div>
+  <!-- Pool Created Success Modal -->
+  <div id="modal-pool-created" class="modal card hidden" style="border-color:#22c55e;">
+    <h3 style="color:#22c55e;">Pool Created!</h3>
+    <p style="margin-bottom:0.5rem;">Your pool is live on Monad Testnet.</p>
+    <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:4px;padding:1rem;margin:1rem 0;text-align:center;">
+      <div style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;">Your Pool ID</div>
+      <div style="font-family:var(--font-anton);font-size:3.5rem;color:#22c55e;line-height:1;" id="created-pool-id-display">—</div>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
+      Share this ID with friends so they can join. Go to Steps tab and use this ID to submit your steps.
+    </p>
+    <button class="btn btn-primary full-width" onclick="app.closeModal();setPoolForSteps(window._lastCreatedPoolId);switchView('steps');">
+      Start Logging Steps &rarr;
+    </button>
+    <button class="btn btn-ghost full-width mt-1" onclick="app.closeModal();switchView('dashboard');">View Dashboard</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;
+     padding:0.75rem 1.5rem;border-radius:8px;font-size:0.9rem;z-index:9999;border:1px solid rgba(255,255,255,0.08);
+     display:none;box-shadow:0 8px 32px rgba(0,0,0,0.4);max-width:90vw;text-align:center;"></div>
+
+<script>lucide.createIcons();</script>
+<script>
+
+var ORACLE_URL    = 'https://stride-production-905b.up.railway.app';
+var CONTRACT_ADDR = '0xFbe9a33D316e6fAa0AD00756F60c18db39F9e339';
+
+var MONAD_CHAIN_ID = '0x279f';
+var MONAD_RPC = 'https://testnet-rpc.monad.xyz';
+var ZERO_ADDR = '0x0000000000000000000000000000000000000000';
+
+var CONTRACT_ABI = [
+  {"inputs":[{"name":"token","type":"address"},{"name":"stakePerPerson","type":"uint256"},{"name":"dailyStepGoal","type":"uint256"},{"name":"durationDays","type":"uint256"},{"name":"mode","type":"uint8"},{"name":"commissionBps","type":"uint256"},{"name":"startDelay","type":"uint256"}],"name":"createPool","outputs":[{"name":"poolId","type":"uint256"}],"stateMutability":"payable","type":"function"},
+  {"inputs":[{"name":"poolId","type":"uint256"}],"name":"joinPool","outputs":[],"stateMutability":"payable","type":"function"},
+  {"inputs":[{"name":"poolId","type":"uint256"},{"name":"steps","type":"uint256"},{"name":"day","type":"uint256"},{"name":"signature","type":"bytes"}],"name":"submitSteps","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"poolId","type":"uint256"}],"name":"finalize","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"token","type":"address"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"_oracle","type":"address"}],"name":"setOracle","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"poolId","type":"uint256"}],"name":"getPoolDetails","outputs":[{"name":"token","type":"address"},{"name":"stakePerPerson","type":"uint256"},{"name":"dailyStepGoal","type":"uint256"},{"name":"durationDays","type":"uint256"},{"name":"mode","type":"uint8"},{"name":"finalized","type":"bool"},{"name":"memberCount","type":"uint256"},{"name":"totalStaked","type":"uint256"},{"name":"commissionBps","type":"uint256"},{"name":"startTimestamp","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"poolId","type":"uint256"},{"name":"member","type":"address"}],"name":"getMemberProgress","outputs":[{"name":"completedDays","type":"uint256"},{"name":"forfeited","type":"bool"},{"name":"memberExists","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"poolId","type":"uint256"},{"name":"member","type":"address"}],"name":"getMemberSteps","outputs":[{"name":"totalSteps","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"poolId","type":"uint256"}],"name":"getMembers","outputs":[{"name":"","type":"address[]"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"user","type":"address"},{"name":"token","type":"address"}],"name":"getPending","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"user","type":"address"}],"name":"getProfile","outputs":[{"name":"wins","type":"uint256"},{"name":"challenges","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"poolCount","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"","type":"address"}],"name":"badge","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"user","type":"address"}],"name":"pendingWithdrawals","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"","type":"uint256"},{"name":"","type":"address"}],"name":"isMember","outputs":[{"name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"oracle","outputs":[{"name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"stateMutability":"view","type":"function"}
+];
+
+
+var walletAddress = null, web3 = null;
+var stepCount = 0, motionActive = false, lastMag = 0, lastStepTime = 0;
+var pendingTxFn = null;
+window._lastCreatedPoolId = null;
+
+function overrideToApp() {
+  // Use URL param — disappears on next clean load, no localStorage pollution
+  window.location.href = window.location.pathname + '?desktop=1';
+}
+
+var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+            || ('ontouchstart' in window)
+            || window.innerWidth < 1024
+            || new URLSearchParams(window.location.search).get('desktop') === '1';
+
+// ── Pool ID tracking ─────────────────────────────────────────────────────────
+function trackCreatedPool(id) {
+  var arr = JSON.parse(localStorage.getItem('strideCreatedPools') || '[]');
+  if (arr.indexOf(id) === -1) { arr.push(id); localStorage.setItem('strideCreatedPools', JSON.stringify(arr)); }
+  window._lastCreatedPoolId = id;
+  // Update pool-id hint in Steps tab
+  var hint = document.getElementById('pool-id-hint');
+  if (hint) hint.textContent = '(your pool: #' + id + ')';
+  // Update active pool banner
+  updateActivePoolBanner(id);
+}
+
+function updateActivePoolBanner(id) {
+  if (id === null || id === undefined) return;
+  var banner = document.getElementById('active-pool-banner');
+  var idEl   = document.getElementById('active-pool-id');
+  var btn    = document.getElementById('active-pool-log-btn');
+  if (!banner) return;
+  banner.style.display = 'block';
+  if (idEl) idEl.textContent = id;
+  if (btn)  btn.setAttribute('onclick', 'setPoolForSteps(' + id + ')');
+  // Load pool meta
+  if (web3) {
+    var c = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDR);
+    c.methods.getPoolDetails(id).call().then(function(pool) {
+      var meta = document.getElementById('active-pool-meta');
+      if (meta) meta.textContent =
+        pool.durationDays + ' days &middot; ' +
+        (parseInt(pool.stakePerPerson)/1e18).toFixed(4) + ' MON stake &middot; ' +
+        (pool.mode == 0 ? 'Strict' : 'Flexible');
+    }).catch(function(){});
+  }
+}
+
+function restoreActivePool() {
+  var arr = JSON.parse(localStorage.getItem('strideCreatedPools') || '[]');
+  if (arr.length > 0) {
+    var lastId = arr[arr.length - 1];
+    window._lastCreatedPoolId = lastId;
+    var hint = document.getElementById('pool-id-hint');
+    if (hint) hint.textContent = '(your pool: #' + lastId + ')';
+    updateActivePoolBanner(lastId);
+    // Pre-fill steps pool ID
+    var spid = document.getElementById('submit-pool-id');
+    if (spid) spid.value = lastId;
+  }
+}
+
+// ── Entry point ───────────────────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  if (!isMobile) {
+    var dv = document.getElementById('desktop-view');
+    dv.style.display = 'flex';
+    var url = window.location.href.split('?')[0];
+    document.getElementById('desktop-url').textContent = url;
+    try { new QRCode(document.getElementById('qrcode'),{text:url,width:200,height:200,colorDark:'#000',colorLight:'#fff'}); }
+    catch(e) { document.getElementById('qrcode').textContent = url; }
+    var ld = document.getElementById('loader');
+    ld.classList.remove('active'); ld.style.display='none';
+    return;
+  }
+  var params = new URLSearchParams(window.location.search);
+  var urlSteps = parseInt(params.get('steps')||'0');
+  if (urlSteps > 0) { stepCount = urlSteps; updateStepDisplay(); }
+
+  var bar = document.getElementById('progress-bar'), w = 0;
+  var iv = setInterval(function() {
+    w = Math.min(w + Math.random()*18, 100);
+    bar.style.width = w+'%';
+    if (w >= 100) {
+      clearInterval(iv);
+      setTimeout(function() {
+        var ld = document.getElementById('loader');
+        ld.classList.add('fade-out');
+        ld.addEventListener('transitionend', function() {
+          ld.style.display='none';
+          document.getElementById('app').classList.remove('hidden');
+          lucide.createIcons();
+          initApp();
+        },{once:true});
+      },300);
+    }
+  },60);
+});
+
+function initApp() {
+  document.querySelectorAll('.nav-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ switchView(btn.getAttribute('data-target')); });
+  });
+  checkOracleStatus();
+  loadGlobalStats();
+  if (window.ethereum) {
+    window.ethereum.request({method:'eth_accounts'}).then(function(a){
+      if (a[0]) { web3=new Web3(window.ethereum); onWalletConnected(a[0]); }
+    }).catch(function(){});
+  }
+}
+
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  var v=document.getElementById('view-'+name);
+  var b=document.querySelector('.nav-btn[data-target="'+name+'"]');
+  if(v) v.classList.add('active');
+  if(b) b.classList.add('active');
+  if(name==='dashboard' && walletAddress) app.loadDashboard();
+  if(name==='profile'   && walletAddress) app.loadProfile();
+}
+
+function setWalletUI(on) {
+  document.querySelectorAll('.disconnected-only').forEach(function(el){
+    if(on){el.style.display='none';el.classList.add('hidden');}
+    else  {el.style.display='';el.classList.remove('hidden');}
+  });
+  document.querySelectorAll('.connected-only').forEach(function(el){ el.classList.toggle('hidden',!on); });
+  document.getElementById('btn-connect-wallet').classList.toggle('hidden',on);
+  document.getElementById('user-info').classList.toggle('hidden',!on);
+}
+
+function showToast(msg,ms) {
+  ms=ms||3000;
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(window._toast);
+  window._toast=setTimeout(function(){ t.style.display='none'; },ms);
+}
+
+function updateStepDisplay() {
+  var el=document.getElementById('step-count-display');
+  if(el) el.textContent=stepCount;
+  updateSubmitBtn();
+}
+
+function updateSubmitBtn() {
+  var b=document.getElementById('submit-steps-btn');
+  if(b) b.disabled=(!walletAddress||stepCount===0);
+}
+
+function showModal(id) {
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  document.querySelectorAll('.modal').forEach(function(m){ m.classList.add('hidden'); });
+  document.getElementById(id).classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function onWalletConnected(addr) {
+  walletAddress=addr;
+  var short=addr.slice(0,6)+'...'+addr.slice(-4);
+  document.getElementById('nav-wallet-address').textContent=short;
+  var sw=document.getElementById('steps-wallet-addr'); if(sw) sw.textContent=short;
+  document.getElementById('profile-wallet').textContent='Connected: '+addr;
+  document.getElementById('profile-username').textContent=short;
+  setWalletUI(true); updateSubmitBtn();
+  restoreActivePool();
+  app.loadDashboard(); app.loadProfile();
+  showToast('Wallet connected: '+short);
+}
+
+function checkOracleStatus() {
+  fetch(ORACLE_URL+'/health')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var ok=d.status==='ok';
+      var el=document.getElementById('oracle-status');
+      if(el){el.textContent=ok?'Online':'Offline';el.className='badge '+(ok?'win':'loss');}
+      var se=document.getElementById('stat-oracle-status'); if(se) se.textContent=ok?'ONLINE':'OFFLINE';
+    }).catch(function(){
+      var el=document.getElementById('oracle-status');
+      if(el){el.textContent='Offline';el.className='badge loss';}
+      var se=document.getElementById('stat-oracle-status'); if(se) se.textContent='OFFLINE';
+    });
+}
+
+function loadGlobalStats() {
+  try {
+    var w3=new Web3(MONAD_RPC);
+    new w3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR).methods.poolCount().call().then(function(c){
+      var e1=document.getElementById('stat-total-pools'); if(e1) e1.textContent=c;
+      var e2=document.getElementById('home-pool-count'); if(e2) e2.textContent=c+' pools live';
+    }).catch(function(){});
+  } catch(e){}
+}
+
+function badgeLabel(n) {
+  return ['None','Week Warrior','Iron Strider','Squad Captain','Perfect Month','Corporate Champ'][n]||'Level '+n;
+}
+
+function setPoolForSteps(id) {
+  var el=document.getElementById('submit-pool-id');
+  if(el) el.value=id;
+  switchView('steps');
+}
+
+function handleMotion(e) {
+  var acc=e.accelerationIncludingGravity;
+  if(!acc||acc.x==null) return;
+  var mag=Math.sqrt(acc.x*acc.x+acc.y*acc.y+acc.z*acc.z);
+  var now=Date.now();
+  if(mag>13.5&&lastMag<=13.5&&(now-lastStepTime)>270){
+    stepCount++; lastStepTime=now;
+    updateStepDisplay();
+    localStorage.setItem('strideSteps',stepCount);
+  }
+  lastMag=mag;
+}
+
+function startMotion() {
+  window.addEventListener('devicemotion',handleMotion,{passive:true});
+  motionActive=true;
+  document.getElementById('motion-btn').textContent='Disable Step Tracking';
+  var dot=document.getElementById('motion-dot');
+  dot.style.background='#22c55e'; dot.style.animation='pulse 1.5s infinite';
+  document.getElementById('motion-status-text').textContent='Tracking live';
+  showToast('Step tracking started');
+}
+
+async function ensureMonad() {
+  try { await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:MONAD_CHAIN_ID}]}); }
+  catch(e) {
+    if(e.code===4902) await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
+      chainId:MONAD_CHAIN_ID,chainName:'Monad Testnet',rpcUrls:[MONAD_RPC],
+      nativeCurrency:{name:'MON',symbol:'MON',decimals:18}
+    }]});
+  }
+}
+
+async function finalizePool(poolId) {
+  try {
+    var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+    await c.methods.finalize(poolId).send({from:walletAddress});
+    showToast('Pool '+poolId+' finalized! Winnings distributed.',5000);
+    app.loadDashboard();
+  } catch(e){ showToast('Error: '+(e.message||'Finalize failed')); }
+}
+
+// ── After createPool tx: get pool ID, store, show success modal ──────────────
+async function handlePoolCreated(contract) {
+  // Small delay — lets Monad state propagate before reading poolCount
+  await new Promise(function(resolve){ setTimeout(resolve, 1500); });
+
+  var newCount = parseInt(await contract.methods.poolCount().call());
+
+  // Guard: if count is still 0 something went wrong, default to 0
+  var newId = newCount > 0 ? newCount - 1 : 0;
+// 0-indexed: poolCount after creation minus 1
+  trackCreatedPool(newId);
+  // Show success modal with big pool ID
+  document.getElementById('created-pool-id-display').textContent = newId;
+  // Pre-fill the submit-pool-id input
+  var spid = document.getElementById('submit-pool-id');
+  if (spid) spid.value = newId;
+  app.closeModal();
+  showModal('modal-pool-created');
+  app.loadDashboard();
+}
+
+var app = {
+  connectWallet: async function() {
+    if(!window.ethereum){
+      window.location.href='https://metamask.app.link/dapp/'+window.location.host+window.location.pathname+'?steps='+stepCount;
+      return;
+    }
+    try {
+      var accounts=await window.ethereum.request({method:'eth_requestAccounts'});
+      await ensureMonad();
+      web3=new Web3(window.ethereum);
+      onWalletConnected(accounts[0]);
+    } catch(e){ showToast('Error: '+(e.message||'Connection failed')); }
+  },
+
+  disconnectWallet: function() {
+    walletAddress=null; web3=null;
+   
+    setWalletUI(false);
+    showToast('Wallet disconnected');
+  },
+
+  closeModal: function() {
+    document.getElementById('modal-overlay').classList.add('hidden');
+    document.querySelectorAll('.modal').forEach(function(m){ m.classList.add('hidden'); });
+  },
+
+  openCreateChallengeModal: function() {
+    if(!walletAddress){showModal('modal-connect');return;}
+    showModal('modal-create');
+  },
+
+  joinChallenge: async function(type) {
+    if(!walletAddress){showModal('modal-connect');return;}
+    var cfg=type==='7day'
+      ?{dailyGoal:10000,duration:7, mode:0,stake:'0.01',label:'7-Day Sprint (Strict)'}
+      :{dailyGoal:10000,duration:30,mode:1,stake:'0.05',label:'1-Month Marathon (Flexible)'};
+    document.getElementById('tx-action').textContent=cfg.label;
+    document.getElementById('tx-amount').textContent=cfg.stake+' MON';
+    pendingTxFn=async function(){
+      var wei=web3.utils.toWei(cfg.stake,'ether');
+      var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+      await c.methods.createPool(ZERO_ADDR,wei,cfg.dailyGoal,cfg.duration,cfg.mode,0,0).send({from:walletAddress,value:wei});
+      await handlePoolCreated(c);
+    };
+    showModal('modal-transaction');
+  },
+
+  createCustomPool: async function() {
+    if(!walletAddress){showModal('modal-connect');return;}
+    var goal=parseInt(document.getElementById('create-step-goal').value);
+    var dur =parseInt(document.getElementById('create-duration').value);
+    var mode=parseInt(document.getElementById('create-mode').value);
+    var wei =web3.utils.toWei('0.01','ether');
+    this.closeModal();
+    try {
+      showToast('Creating pool...',10000);
+      var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+      await c.methods.createPool(ZERO_ADDR,wei,goal,dur,mode,0,0).send({from:walletAddress,value:wei});
+      await handlePoolCreated(c);
+    } catch(e){ showToast('Error: '+(e.message||'Failed')); }
+  },
+
+  executeTransaction: async function() {
+    if(!pendingTxFn){this.closeModal();return;}
+    document.getElementById('tx-actions').classList.add('hidden');
+    document.getElementById('tx-loader').classList.remove('hidden');
+    try { await pendingTxFn(); }
+    catch(e) {
+      document.getElementById('tx-actions').classList.remove('hidden');
+      document.getElementById('tx-loader').classList.add('hidden');
+      document.getElementById('error-message-text').textContent=e.message||'Transaction failed';
+      showModal('modal-error');
+    } finally { pendingTxFn=null; }
+  },
+
+  toggleMotion: function() {
+    if(motionActive){
+      window.removeEventListener('devicemotion',handleMotion);
+      motionActive=false;
+      document.getElementById('motion-btn').textContent='Enable Step Tracking';
+      var dot=document.getElementById('motion-dot');
+      dot.style.background='#555'; dot.style.animation='none';
+      document.getElementById('motion-status-text').textContent='Motion sensor off';
+      return;
+    }
+    if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+      DeviceMotionEvent.requestPermission()
+        .then(function(r){ if(r==='granted') startMotion(); else showToast('Motion permission denied'); })
+        .catch(function(){ showToast('Permission error'); });
+    } else { startMotion(); }
+  },
+
+  submitSteps: async function() {
+    if(!walletAddress||stepCount===0) return;
+    var poolId=parseInt(document.getElementById('submit-pool-id').value);
+    var btn=document.getElementById('submit-steps-btn');
+    btn.disabled=true;
+    try {
+      await ensureMonad();
+      showToast('Requesting oracle signature...',8000);
+      var today=Math.floor(Date.now()/1000/86400);
+      var res=await fetch(ORACLE_URL+'/sign-steps',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({walletAddress:walletAddress,poolId:poolId,steps:stepCount,date:today})
+      });
+      var data=await res.json();
+      if(!data.signature) throw new Error(data.error||'No signature from oracle');
+      showToast('Confirm in MetaMask...',15000);
+      var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+      await c.methods.submitSteps(poolId,stepCount,today,data.signature).send({from:walletAddress});
+      showToast(stepCount+' steps submitted to Pool '+poolId+'!',5000);
+      app.loadDashboard();
+    } catch(e){ showToast('Error: '+(e.message||'Submission failed')); }
+    finally { btn.disabled=false; }
+  },
+
+  loadDashboard: async function() {
+    if(!walletAddress||!web3) return;
+    try {
+      var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+      var profile=await c.methods.getProfile(walletAddress).call();
+      document.getElementById('dash-wins').textContent=profile.wins;
+      document.getElementById('dash-challenges').textContent=profile.challenges;
+
+      var pending=await c.methods.getPending(walletAddress,ZERO_ADDR).call();
+      if(parseInt(pending)>0){
+        document.getElementById('pending-winnings-card').style.display='block';
+        document.getElementById('dash-pending-amount').textContent=(parseInt(pending)/1e18).toFixed(4)+' MON';
+      }
+
+      var count=parseInt(await c.methods.poolCount().call());
+      var sp=document.getElementById('stat-total-pools'); if(sp) sp.textContent=count;
+      var hp=document.getElementById('home-pool-count'); if(hp) hp.textContent=count+' pools live';
+
+      // Merge on-chain membership with locally tracked pools
+      var tracked=JSON.parse(localStorage.getItem('strideCreatedPools')||'[]');
+      var toCheck=[];
+      for(var j=0;j<Math.min(count,30);j++) toCheck.push(j);
+      tracked.forEach(function(id){
+  // Skip any corrupted -1 entries from previous bug
+  if(id >= 0 && id < count && toCheck.indexOf(id) === -1) toCheck.push(id);
+});
+
+
+      var html='';
+      for(var ii=0;ii<toCheck.length;ii++){
+        var i=toCheck[ii];
+        var p=await c.methods.getMemberProgress(i,walletAddress).call();
+        var isTracked=tracked.indexOf(i)!==-1;
+        if(!p.memberExists&&!isTracked) continue;
+
+        var pool=await c.methods.getPoolDetails(i).call();
+        var pct=pool.durationDays>0?Math.round(p.completedDays/pool.durationDays*100):0;
+        var members=parseInt(pool.memberCount);
+        var stake=(parseInt(pool.stakePerPerson)/1e18).toFixed(4);
+        var totalPot=(parseInt(pool.totalStaked)/1e18).toFixed(4);
+
+        var bdg=p.forfeited
+          ?'<span class="badge loss">Forfeited</span>'
+          :pool.finalized
+            ?'<span class="badge win">Finished</span>'
+            :'<span class="badge" style="background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);">Active</span>';
+
+        var notMember=!p.memberExists&&isTracked;
+        var actionBtn='';
+        if(notMember){
+          actionBtn='<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);border-radius:4px;padding:0.6rem;margin-top:0.75rem;font-size:0.82rem;color:#f59e0b;text-align:center;">'
+            +'You created this pool but are not yet enrolled as a member. Stake is held in contract.</div>';
+        } else if(!pool.finalized&&!p.forfeited){
+          actionBtn='<button class="btn btn-outline btn-small full-width mt-1" onclick="setPoolForSteps('+i+')">Log Steps for Pool #'+i+'</button>';
+        } else if(pool.finalized){
+          actionBtn='<button class="btn btn-outline btn-small full-width mt-1" onclick="finalizePool('+i+')">Claim / Finalize</button>';
+        }
+
+        html+='<div class="challenge-card card">'
+          +'<div class="card-header"><h4>Pool #'+i+'</h4>'+bdg+'</div>'
+          +'<div class="card-body">'
+          +'<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem;">'
+          +'<span style="color:var(--text-muted);font-size:0.82rem;">' +p.completedDays+'/'+pool.durationDays+' days</span>'
+          +'<span style="color:var(--text-muted);font-size:0.82rem;">'+stake+' MON stake</span>'
+          +'<span style="color:var(--text-muted);font-size:0.82rem;">'+members+' members</span>'
+          +'<span style="color:var(--deep-red);font-size:0.82rem;">Pot: '+totalPot+' MON</span>'
+          +'</div>'
+          +'<div class="lb-progress"><div class="lb-progress-fill" style="width:'+pct+'%;"></div></div>'
+          +actionBtn+'</div></div>';
+      }
+
+      document.getElementById('ongoing-challenges-list').innerHTML=html||
+        '<div class="card" style="text-align:center;color:var(--text-muted);padding:2rem;">No pools yet. Create or join a challenge!</div>';
+
+      // Restore active pool banner
+      if(window._lastCreatedPoolId!==null) updateActivePoolBanner(window._lastCreatedPoolId);
+    } catch(e){ console.error('Dashboard error:',e); }
+  },
+
+  loadProfile: async function() {
+    if(!walletAddress||!web3) return;
+    try {
+      var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+      var profile=await c.methods.getProfile(walletAddress).call();
+      var bdg=await c.methods.badge(walletAddress).call();
+      var pending=await c.methods.getPending(walletAddress,ZERO_ADDR).call();
+      document.getElementById('profile-wins').textContent=profile.wins;
+      document.getElementById('profile-challenges').textContent=profile.challenges;
+      document.getElementById('profile-badge').textContent=badgeLabel(parseInt(bdg));
+      if(parseInt(pending)>0){
+        document.getElementById('profile-pending-card').style.display='block';
+        document.getElementById('profile-pending-amount').textContent=(parseInt(pending)/1e18).toFixed(4)+' MON';
+      }
+    } catch(e){ console.error('Profile error:',e); }
+  },
+
+  withdrawFunds: async function() {
+    if(!walletAddress||!web3) return;
+    try {
+      var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+      await c.methods.withdraw(ZERO_ADDR).send({from:walletAddress});
+      showToast('Withdrawal successful!',4000);
+      app.loadProfile(); app.loadDashboard();
+    } catch(e){ showToast('Error: '+(e.message||'Withdrawal failed')); }
+  },
+
+  joinExistingPool: async function() {
+    if(!walletAddress){showModal('modal-connect');return;}
+    var poolId=parseInt(document.getElementById('join-pool-id').value);
+    if(isNaN(poolId)){showToast('Enter a valid Pool ID');return;}
+    try {
+      var c=new web3.eth.Contract(CONTRACT_ABI,CONTRACT_ADDR);
+      var pool=await c.methods.getPoolDetails(poolId).call();
+      showToast('Joining pool '+poolId+'...',10000);
+      await c.methods.joinPool(poolId).send({from:walletAddress,value:pool.stakePerPerson});
+      trackCreatedPool(poolId);
+      showToast('Joined Pool #'+poolId+'! Go log your steps.',5000);
+      var spid=document.getElementById('submit-pool-id'); if(spid) spid.value=poolId;
+      app.loadDashboard();
+    } catch(e){ showToast('Error: '+(e.message||'Join failed')); }
+  }
+};
+</script>
+</body>
+</html>
